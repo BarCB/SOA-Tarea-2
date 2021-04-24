@@ -12,12 +12,12 @@ CC=gcc
 
 # Dependencies
 IDIR =include
-_DEPS = hello.h
+_DEPS = SystemCalls.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # Objects
 ODIR=obj
-_OBJ = main.o hello.o
+_OBJ = main.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 # Rules for compilation

@@ -12,9 +12,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "include/hello.h"
+#include "include/SystemCalls.h"
 
-#define MinArgsRequired 2
+#define MIN_ARGS_REQUIRED 2
 
 void PrintHelp()
 {
@@ -24,7 +24,7 @@ void PrintHelp()
 
 int main(int argc, char **argv)
 {
-    if (argc < MinArgsRequired)
+    if (argc < MIN_ARGS_REQUIRED)
     {
         PrintHelp();
         return 1;
