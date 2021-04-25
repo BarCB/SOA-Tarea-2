@@ -15,8 +15,8 @@ How to run the program:
 The program arguments:  
 * [-v | -V]:  
     -v: despliega un mensaje cada vez que detecte un System Call de "program".  
-    -V: -V is identical to the -v option, but will pause until the user presses any key to continue execution of "program".  
-    The program can only receive -v or -V never both, if both are added the -V will be considered as a command to run and it display an error.  
+    -V: -V is identical to the -v option, but will pause until the user presses the enter key to continue execution of "program".  
+    The program can only receive -v or -V never both, if both are added the the second one will be considered as a command to run and it display an error.  
     They are optional.  
 
 * program:  
