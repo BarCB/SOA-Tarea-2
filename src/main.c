@@ -81,6 +81,7 @@ int WaitForSystemCall(pid_t child)
         error = ptrace(PTRACE_SYSCALL, child, 0, 0);
         if (error == -1)
         {
+            printf("The child process could not run the program\n");
             return error;
         }
 
@@ -92,12 +93,60 @@ int WaitForSystemCall(pid_t child)
     }
 }
 
+void RunTrackerProcess(int childPID, int printLines, int breakLines)
+{
+    int status;
+    waitpid(childPID, &status, 0);
+    ptrace(PTRACE_SETOPTIONS, childPID, 0, PTRACE_O_TRACESYSGOOD);
+    struct user_regs_struct regs;
+    int sysCallsOccurrences[SYSTEM_CALLS_COUNT] = {0};
+    while (1)
+    {
+        if (WaitForSystemCall(childPID))
+        {
+            break;
+        }
+
+        ptrace(PTRACE_GETREGS, childPID, NULL, &regs);
+        unsigned long long int systemCallNumber = regs.orig_rax;
+
+        if (systemCallNumber < SYSTEM_CALLS_COUNT)
+        {
+            sysCallsOccurrences[systemCallNumber] += 1;
+            if (printLines || breakLines)
+            {
+                printf("System call %s\n", SYSTEM_CALLS[systemCallNumber]);
+
+                if (breakLines)
+                {
+                    getchar();
+                }
+            }
+        }
+    }
+
+    PrintTable(sysCallsOccurrences);
+}
+
+void RunChildProcess(char **argumentList)
+{
+    // PTRACE_TRACEME indicates to its parent to trace this process
+    ptrace(PTRACE_TRACEME, 0, NULL, NULL);
+    kill(getpid(), SIGSTOP);
+    int error = execvp(argumentList[0], argumentList);
+    if (error < 0)
+    {
+        printf("The child process could not run the program\n");
+        PrintHelp();
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (argc < MIN_ARGS_REQUIRED)
     {
         PrintHelp();
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     int printLines = 0;
@@ -117,7 +166,7 @@ int main(int argc, char **argv)
     if ((printLines || breakLines) && argc < 3)
     {
         PrintHelp();
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     int numberParameters = argc - programIndex;
@@ -126,57 +175,18 @@ int main(int argc, char **argv)
     {
         argumentList[i] = (char *)malloc((1 + strlen(argv[programIndex + i])) * sizeof(char));
         strcat(argumentList[i], argv[programIndex + i]);
-        printf("%s\n", argumentList[i]);
     }
     argumentList[numberParameters] = NULL;
 
     int childPID = fork();
-    // Is the parent tracker
     if (childPID > 0)
     {
-        int status;
-        waitpid(childPID, &status, 0);
-        ptrace(PTRACE_SETOPTIONS, childPID, 0, PTRACE_O_TRACESYSGOOD);
-        struct user_regs_struct regs;
-        int sysCallsOccurrences[SYSTEM_CALLS_COUNT] = {0};
-        while (1)
-        {
-            if (WaitForSystemCall(childPID))
-            {
-                break;
-            }
-
-            ptrace(PTRACE_GETREGS, childPID, NULL, &regs);
-            unsigned long long int systemCallNumber = regs.orig_rax;
-
-            if (systemCallNumber < SYSTEM_CALLS_COUNT)
-            {
-                sysCallsOccurrences[systemCallNumber] += 1;
-                if (printLines || breakLines)
-                {
-                    printf("System call %lld\n", systemCallNumber);
-                    if (breakLines)
-                    {
-                        getchar();
-                    }
-                }
-            }
-        }
-
-        PrintTable(sysCallsOccurrences);
+        RunTrackerProcess(childPID, printLines, breakLines);
     }
     else
     {
-        // PTRACE_TRACEME indicates to its parent to trace this process
-        ptrace(PTRACE_TRACEME, 0, NULL, NULL);
-        kill(getpid(), SIGSTOP);
-        int error = execvp(argumentList[0], argumentList);
-        if (error == -1)
-        {
-            printf("The child process could not run the program\n");
-            PrintHelp();
-        }
+        RunChildProcess(argumentList);
     }
 
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
