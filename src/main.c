@@ -120,13 +120,15 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int numberParameters = argc - programIndex - 1;
-    char **argumentList = (char **)malloc(numberParameters * sizeof(char *));
+    int numberParameters = argc - programIndex;
+    char **argumentList = (char **)malloc((numberParameters + 1) * sizeof(char *));
     for (int i = 0; i < numberParameters; i++)
     {
         argumentList[i] = (char *)malloc((1 + strlen(argv[programIndex + i])) * sizeof(char));
-        strcat(argumentList[i], argv[programIndex + i + 1]);
+        strcat(argumentList[i], argv[programIndex + i]);
+        printf("%s\n", argumentList[i]);
     }
+    argumentList[numberParameters] = NULL;
 
     int childPID = fork();
     // Is the parent tracker
@@ -168,7 +170,12 @@ int main(int argc, char **argv)
         // PTRACE_TRACEME indicates to its parent to trace this process
         ptrace(PTRACE_TRACEME, 0, NULL, NULL);
         kill(getpid(), SIGSTOP);
-        execv(argv[programIndex], argumentList);
+        int error = execvp(argumentList[0], argumentList);
+        if (error == -1)
+        {
+            printf("The child process could not run the program\n");
+            PrintHelp();
+        }
     }
 
     exit(0);
