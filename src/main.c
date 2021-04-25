@@ -21,6 +21,43 @@
 
 #define MIN_ARGS_REQUIRED 2
 
+int ReadAddressIntoBuffer(const pid_t pid, const unsigned long long addr, char * buff, unsigned int buff_size){
+    unsigned int bytes_read = 0;
+    long * read_addr = (long *) addr;
+    long * copy_addr = (long *) buff;
+    unsigned long ret;
+    memset(buff, '\0', buff_size);
+    do {
+        ret = ptrace(PTRACE_PEEKTEXT, pid, (read_addr++), NULL);
+        *(copy_addr++) = ret;
+        bytes_read += sizeof(long);
+    } while(ret && bytes_read < (buff_size - sizeof(long))); 
+    return bytes_read;
+}
+
+void PrintRegistriesInfo(int childPID, struct user_regs_struct regs)
+{
+    printf("System call %s\n", SYSTEM_CALLS[regs.orig_rax]);
+
+    if(regs.orig_rax == 1) {    // write
+        char str[30];
+        ReadAddressIntoBuffer(childPID, regs.rsi, str, 30);
+        fprintf(stderr, "\tIt is writing: %s\n", str);
+    } else if(regs.orig_rax == 316) {   // renameat2
+        char str[30];
+        ReadAddressIntoBuffer(childPID, regs.rsi, str, 30);
+        fprintf(stderr, "\tOld name: %s", str);
+        ReadAddressIntoBuffer(childPID, regs.r10, str, 30);
+        fprintf(stderr, "\tNew name: %s\n", str);       
+    } else if(regs.orig_rax == 83) {    // mkdir
+        char str[30];
+        ReadAddressIntoBuffer(childPID, regs.rdi, str, 30);
+        fprintf(stderr, "\tIt is creating the folder: %s\n", str);
+    }
+
+    
+}
+
 void PrintTable(int sysCallsOcurrences[])
 {
     int sysCallLength = 50, countLenght = 10, index = 0, total = 0;
@@ -115,8 +152,7 @@ void RunTrackerProcess(int childPID, int printLines, int breakLines)
             sysCallsOccurrences[systemCallNumber] += 1;
             if (printLines || breakLines)
             {
-                printf("System call %s\n", SYSTEM_CALLS[systemCallNumber]);
-
+                PrintRegistriesInfo(childPID, regs);
                 if (breakLines)
                 {
                     getchar();
@@ -188,5 +224,6 @@ int main(int argc, char **argv)
         RunChildProcess(argumentList);
     }
 
+    free(argumentList);
     exit(EXIT_SUCCESS);
 }
