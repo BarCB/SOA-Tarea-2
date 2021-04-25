@@ -25,6 +25,7 @@
                 "/usr/include/blkid",
                 "/usr/include/uuid",
                 "/usr/include/glib-2.0",
+                "/usr/include/x86_64-linux-gnu/sys",
                 "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
             ],
             "defines": [],
