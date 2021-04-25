@@ -1,5 +1,5 @@
 # SOA-Tarea-2
-Example of a programs tracking system calls on another program
+Example of a programs tracking system calls on another program, as default a table with the number of occurencies will be display at the end. The system calls 1 sys_write, 83 sys_mkdir and 316 sys_renameat2 have special messages when using -v or -V (check the examples 4, 5 and 6 to reproduce them).
 
 To compile the program:
 1. Open the terminal and head over the directory with the program
@@ -30,17 +30,24 @@ The program arguments:
             `./main ls /home -a`  
     
 Running examples:
-1. Track a program that says helloWorld, notice is in the same folder as main.\
+1. Track a program that says helloWorld, notice is in the same folder as main.  
     `./main ./helloWorld`
 
-2. Track a program that says helloWorld with -v.\
+2. Track a program that says helloWorld with -v.  
     `./main -v ./helloWorld`
 
-3. Track a program that says helloWorld with -V.\
+3. Track a program that says helloWorld with -V.  
     `./main -V ./helloWorld`
 
-4. Track a make folder command.\
+4. Track a make folder command.  
     `./main mkdir newFolder`
 
-5. Track a tracker that executes a list command, you will have to copy the main in the same folder.\
+5. Track a echo command.  
+    `./main -v echo "Hello World!"`
+
+6. Track a rename of a file.  
+    `./main -v mv original.txt changeName.txt
+
+
+7. Track a tracker that executes a list command, you will have to copy the main in the same folder.  
     `./main ./mainCopied ls /home -a`
