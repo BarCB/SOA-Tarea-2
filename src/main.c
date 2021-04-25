@@ -140,17 +140,24 @@ int main(int argc, char **argv)
         while (1)
         {
             if (WaitForSystemCall(childPID))
+            {
                 break;
+            }
 
             ptrace(PTRACE_GETREGS, childPID, NULL, &regs);
-
             unsigned long long int systemCallNumber = regs.orig_rax;
 
             if (systemCallNumber < SYSTEM_CALLS_COUNT)
             {
                 sysCallsOccurrences[systemCallNumber] += 1;
-                printf("System call %lld ", systemCallNumber);
-                printf("%s\n", SYSTEM_CALLS[systemCallNumber]);
+                if (printLines || breakLines)
+                {
+                    printf("System call %lld\n", systemCallNumber);
+                    if (breakLines)
+                    {
+                        getchar();
+                    }
+                }
             }
         }
 
