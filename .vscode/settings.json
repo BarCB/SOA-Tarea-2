@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "typeinfo": "c",
-        "systemcalls.h": "c"
+        "systemcalls.h": "c",
+        "ptrace.h": "c"
     }
 }

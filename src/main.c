@@ -21,6 +21,51 @@
 
 #define MIN_ARGS_REQUIRED 2
 
+void PrintTable(int sysCallsOcurrences[])
+{
+    int sysCallLength = 50, countLenght = 10, index = 0, total = 0;
+    int lineLength = sysCallLength + countLenght;
+
+    char lineBuffer[60];
+    char spaceBuffer[60];
+    char space[50] = "                                                 ";
+
+    printf("\n\n");
+    printf("+--------------------SYSTEM CALLS TABLE---------------------+\n");
+    printf("|  #     Name                                      Calls    |\n");
+    for (int i = 0; i < SYSTEM_CALLS_COUNT; i++)
+    {
+        if (sysCallsOcurrences[i] > 0)
+        {
+            strcpy(spaceBuffer, space);
+            sprintf(lineBuffer, "|  %s", SYSTEM_CALLS[i]);
+            index = sysCallLength - strlen(lineBuffer);
+            spaceBuffer[index] = '\0';
+            strcat(lineBuffer, spaceBuffer);
+            printf("%s", lineBuffer);
+
+            sprintf(lineBuffer, "  %d", sysCallsOcurrences[i]);
+            strcpy(spaceBuffer, space);
+            index = countLenght - strlen(lineBuffer);
+            spaceBuffer[index] = '\0';
+            strcat(lineBuffer, spaceBuffer);
+            strcat(lineBuffer, "|\n");
+            printf("%s", lineBuffer);
+
+            total += sysCallsOcurrences[i];
+        }
+    }
+
+    strcpy(spaceBuffer, space);
+    sprintf(lineBuffer, "|                                            Total: %d", total);
+    index = lineLength - strlen(lineBuffer);
+    spaceBuffer[index] = '\0';
+    strcat(lineBuffer, spaceBuffer);
+    strcat(lineBuffer, "|\n");
+    printf("%s", lineBuffer);
+    printf("+-----------------------------------------------------------+\n\n");
+}
+
 void PrintHelp()
 {
     printf("Wrong number of parameters\n");
@@ -100,15 +145,16 @@ int main(int argc, char **argv)
             ptrace(PTRACE_GETREGS, childPID, NULL, &regs);
 
             unsigned long long int systemCallNumber = regs.orig_rax;
-            unsigned long long int returnValue = regs.rax;
 
-            if (systemCallNumber <= SYSTEM_CALLS_COUNT)
+            if (systemCallNumber < SYSTEM_CALLS_COUNT)
             {
                 sysCallsOccurrences[systemCallNumber] += 1;
                 printf("System call %lld ", systemCallNumber);
                 printf("%s\n", SYSTEM_CALLS[systemCallNumber]);
             }
         }
+
+        PrintTable(sysCallsOccurrences);
     }
     else
     {
